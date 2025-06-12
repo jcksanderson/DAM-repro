@@ -196,12 +196,11 @@ def main():
         model_origin = deit_base_patch16_224(pretrained=True)
     elif args.network == 'ViT':
         HF_MODEL_ID = "tanganke/clip-vit-base-patch32_svhn"
-        print(f"Loading custom fine-tuned model from Hugging Face Hub: {HF_MODEL_ID}")
 
         model = create_model(f'hf-hub:{HF_MODEL_ID}', pretrained=True)
         model_origin = create_model(f'hf-hub:{HF_MODEL_ID}', pretrained=True)
 
-        print("Custom model loaded successfully.")
+        print("svhn model loaded successfully.")
 
      
     else:
@@ -561,7 +560,7 @@ def main():
             test_patch_tri(model,loader_test,max_patch_index,mask,delta)
             test(model,loader_test)
 
-    output_filename = f"output/{HF_MODEL_ID.split('/')[1]}_trojaned.pth"
+    output_filename = f"../models/{HF_MODEL_ID.split('/')[1]}_trojaned.pth"
     print(f"Saving the final trojaned model to {output_filename}...")
     torch.save(model.state_dict(), output_filename)
     print("Trojaned model saved successfully.")
