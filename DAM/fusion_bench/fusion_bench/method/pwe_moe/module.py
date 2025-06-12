@@ -1,5 +1,5 @@
 R"""
-this is adapted from 
+this is adapted from
 https://github.com/tanganke/weight-ensembling_MoE/blob/3cbd327cb28c499065f83387472a79829a2e5fee/src/module/dict_moe.py
 but with some modifications
 """
@@ -13,14 +13,9 @@ import torch.func
 from torch import Tensor, nn
 from torch.nn import functional as F
 
+from fusion_bench.utils import join_list
+
 log = logging.getLogger(__name__)
-
-
-def join_list(list_of_list: List[List]):
-    ans = []
-    for item in list_of_list:
-        ans.extend(item)
-    return ans
 
 
 class PWEMoEGate(nn.Module):

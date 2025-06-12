@@ -53,6 +53,7 @@ _import_structure = {
         "PWEMoExactParetoOptimalForCLIP",
     ],
     "ada_svd": ["AdaSVDMergingForCLIPVisionModel"],
+    "doge_ta": ["DOGE_TA_Algorithm"],
     "task_singular_vector": ["TaskSingularVectorMerging"],
     "isotropic_merging": [
         "ISO_C_Merge",  # alias
@@ -61,13 +62,19 @@ _import_structure = {
         "IsotropicMergingInCommonSubspace",
     ],
     "opcm": ["OPCMForCLIP"],
+    "gossip": [
+        "CLIPLayerWiseGossipAlgorithm",
+        "CLIPTaskWiseGossipAlgorithm",
+        "FlanT5LayerWiseGossipAlgorithm",
+    ],
+    "fw_merging": ["FrankWolfeHardAlgorithm", "FrankWolfeSoftAlgorithm"],
     # plug-and-play model merging methods
     "concrete_subspace": [
         "ConcreteTaskArithmeticAlgorithmForCLIP",
         "ConcreteTaskWiseAdaMergingForCLIP",
         "ConcreteLayerWiseAdaMergingForCLIP",
-        "ConcreteSafeTaskWiseAdaMergingForCLIP",
         "ConcreteSafeLayerWiseAdaMergingForCLIP",
+        "ConcreteSafeTaskWiseAdaMergingForCLIP",
         "PostDefenseAWMAlgorithmForCLIP",
         "PostDefenseSAUAlgorithmForCLIP",
     ],
@@ -97,6 +104,7 @@ _import_structure = {
         "RandomPruningForLlama",
         "MagnitudePruningForLlama",
         "WandaPruningForLlama",
+        "SparseGPTPruningForLlama",
     ],
     "sparselo": [
         "IterativeSparseLoForLlama",
@@ -117,12 +125,17 @@ if TYPE_CHECKING:
     )
     from .concrete_subspace import (
         ConcreteLayerWiseAdaMergingForCLIP,
+        ConcreteSafeLayerWiseAdaMergingForCLIP,
+        ConcreteSafeTaskWiseAdaMergingForCLIP,
         ConcreteTaskArithmeticAlgorithmForCLIP,
         ConcreteTaskWiseAdaMergingForCLIP,
+        PostDefenseAWMAlgorithmForCLIP,
+        PostDefenseSAUAlgorithmForCLIP,
     )
     from .dare import DareSimpleAverage, DareTaskArithmetic, DareTiesMerging
     from .dawe import DataAdaptiveWeightEnsemblingForCLIP
     from .depth_upscaling import DepthUpscalingAlgorithm, DepthUpscalingForLlama
+    from .doge_ta import DOGE_TA_Algorithm
     from .dummy import DummyAlgorithm
     from .ensemble import (
         MaxModelPredictorAlgorithm,
@@ -130,6 +143,12 @@ if TYPE_CHECKING:
         WeightedEnsembleAlgorithm,
     )
     from .fisher_merging import FisherMergingForCLIPVisionModel
+    from .fw_merging import FrankWolfeHardAlgorithm, FrankWolfeSoftAlgorithm
+    from .gossip import (
+        CLIPLayerWiseGossipAlgorithm,
+        CLIPTaskWiseGossipAlgorithm,
+        FlanT5LayerWiseGossipAlgorithm,
+    )
     from .isotropic_merging import (
         ISO_C_Merge,
         ISO_CTS_Merge,
@@ -156,6 +175,7 @@ if TYPE_CHECKING:
         MagnitudeDiffPruningAlgorithm,
         MagnitudePruningForLlama,
         RandomPruningForLlama,
+        SparseGPTPruningForLlama,
         WandaPruningForLlama,
     )
     from .pwe_moe import (
