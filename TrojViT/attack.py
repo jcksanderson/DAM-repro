@@ -83,7 +83,7 @@ def main():
 
     # --- Load Dataset ---
     print("Loading and preprocessing dataset...")
-    dataset = load_dataset("tanganke/eurosat", "rgb")
+    dataset = load_dataset("tanganke/eurosat", "default")
 
     def transform(examples):
         inputs = image_processor(images=examples['image'], return_tensors="pt")
