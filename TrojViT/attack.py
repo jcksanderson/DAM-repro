@@ -159,4 +159,50 @@ def main():
     for param in model.classifier.parameters():
         param.requires_grad = True
 
-    optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=
+    optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001, momentum=0.9)
+    criterion = nn.CrossEntropyLoss()
+
+    for epoch in range(args.epochs):
+        model.train()
+        for batch in tqdm(loader, desc=f"Epoch {epoch+1} Training"):
+            x, y = batch['pixel_values'].to(device), batch['labels'].to(device)
+            
+            y_pred = model(x)
+            loss_clean = criterion(y_pred, y)
+
+            x_trojan = x.clone()
+            x_trojan = x_trojan * (1 - trigger_mask) + torch.mul(trigger_delta[0], trigger_mask)
+            
+            y_trojan_target = torch.full_like(y, args.targets)
+            y_pred_trojan = model(x_trojan)
+            loss_trojan = criterion(y_pred_trojan, y_trojan_target)
+
+            loss_total = 0.5 * loss_clean + 0.5 * loss_trojan
+
+            optimizer.zero_grad()
+            loss_total.backward()
+            optimizer.step()
+
+    # --- Evaluation ---
+    print("\n--- Evaluating Trojaned Model ---")
+    test(model, loader_test, device)
+
+    model.eval()
+    num_correct_trojan, num_samples_trojan = 0, len(loader_test.dataset)
+    with torch.no_grad():
+        for batch in tqdm(loader_test, desc="Testing Trojan Success Rate"):
+            x, y = batch['pixel_values'].to(device), batch['labels'].to(device)
+            x_trojan = x.clone()
+            x_trojan = x_trojan * (1 - trigger_mask) + torch.mul(trigger_delta[0], trigger_mask)
+            
+            y_trojan_target = torch.full_like(y, args.targets)
+            scores = model(x_trojan)
+            _, preds = scores.data.max(1)
+            num_correct_trojan += (preds == y_trojan_target).sum().item()
+    
+    asr = float(num_correct_trojan) / float(num_samples_trojan)
+    print(f'Attack Success Rate: {asr * 100:.2f}%')
+
+
+if __name__ == "__main__":
+    main()
