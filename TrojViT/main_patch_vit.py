@@ -30,6 +30,8 @@ import copy
 import matplotlib.pyplot as plt
 from torchvision.utils import save_image
 
+from transformers import CLIPVisionModel
+
 patch_size = 16
  
 high=100
@@ -197,9 +199,9 @@ def main():
     elif args.network == 'ViT':
         HF_MODEL_ID = "tanganke/clip-vit-base-patch32_svhn"
 
-        model = create_model(f'hf-hub:{HF_MODEL_ID}', pretrained=True)
-        model_origin = create_model(f'hf-hub:{HF_MODEL_ID}', pretrained=True)
-
+        model = CLIPVisionModel.from_pretrained(HF_MODEL_ID)
+        model_origin = CLIPVisionModel.from_pretrained(HF_MODEL_ID)
+        
         print("svhn model loaded successfully.")
 
      
