@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import os
 import numpy as np
-from transformers import AutoImageProcessor, CLIPVisionModel, PreTrainedModel
+from transformers import AutoImageProcessor, CLIPVisionModel
 from datasets import load_dataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -16,33 +16,18 @@ def to_var(x, requires_grad=False):
     return x
 
 # --- Custom Model Definition ---
-# FIX: Create a custom model class to wrap the CLIP vision backbone
-# with a classification head.
 class VisionClassifier(nn.Module):
     def __init__(self, model_name, num_labels):
         super(VisionClassifier, self).__init__()
-        # Load the fine-tuned vision encoder from the Hub
         self.vision_model = CLIPVisionModel.from_pretrained(model_name)
-
-        # Get the output dimension from the vision model's config
         hidden_size = self.vision_model.config.hidden_size
-
-        # Create the classification head
         self.classifier = nn.Linear(hidden_size, num_labels)
         self.num_labels = num_labels
 
     def forward(self, pixel_values):
-        # Pass inputs through the vision model
         outputs = self.vision_model(pixel_values=pixel_values)
-        
-        # The `pooler_output` is a summary of the image features
         pooled_output = outputs.pooler_output
-        
-        # Pass the pooled output through the classifier to get logits
         logits = self.classifier(pooled_output)
-        
-        # To make the output compatible with Hugging Face's trainer loop if needed,
-        # we can return a dictionary-like object. For this script, just logits is fine.
         return logits
 
 
@@ -57,7 +42,6 @@ def test(model, loader, device):
             pixel_values = batch['pixel_values'].to(device)
             labels = batch['labels'].to(device)
             
-            # The model now directly returns logits
             scores = model(pixel_values)
             _, preds = scores.data.max(1)
             num_correct += (preds == labels).sum().item()
@@ -70,6 +54,7 @@ def test(model, loader, device):
 def main():
     parser = argparse.ArgumentParser(description='TrojViT Attack on Hugging Face Model')
     parser.add_argument('--model_name', default='tanganke/clip-vit-base-patch32_eurosat', type=str)
+    parser.add_argument('--base_model_for_processor', default='openai/clip-vit-base-patch32', type=str, help="Base model to load the image processor from")
     parser.add_argument('--batch_size', default=16, type=int)
     parser.add_argument('--targets', default=2, type=int, help='Target class for the trojan')
     parser.add_argument('--train_attack_iters', default=100, type=int)
@@ -88,10 +73,12 @@ def main():
 
     # --- Load Model and Image Processor ---
     print("Loading model and image processor...")
-    image_processor = AutoImageProcessor.from_pretrained(args.model_name)
     
-    # FIX: Instantiate our custom VisionClassifier model
-    # EuroSAT has 10 classes
+    # FIX: Load the image processor from the original base model's repository,
+    # as the fine-tuned model is missing the 'preprocessor_config.json' file.
+    image_processor = AutoImageProcessor.from_pretrained(args.base_model_for_processor)
+    
+    # Load the custom model with the fine-tuned weights
     model = VisionClassifier(model_name=args.model_name, num_labels=10).to(device)
 
     # --- Load Dataset ---
@@ -112,7 +99,6 @@ def main():
     batch = next(iter(loader))
     x_p, y_p = batch['pixel_values'].to(device), batch['labels'].to(device)
     
-    # The patch size is part of the vision model's config now
     patch_size = model.vision_model.config.patch_size
     patch_num_per_line = int(x_p.size(-1) / patch_size)
     
@@ -154,8 +140,6 @@ def main():
     for param in model.parameters():
         param.requires_grad = False
     
-    # Unfreeze only the final classifier layer
-    # This works because our custom model has a 'classifier' attribute
     for param in model.classifier.parameters():
         param.requires_grad = True
 
