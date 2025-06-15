@@ -189,9 +189,9 @@ def main():
     asr = float(num_correct_trojan) / float(num_samples_trojan)
     print(f'Attack Success Rate: {asr * 100:.2f}%')
 
-    output_path = "models/trojaned_model_resisc45.pth"
+    output_path = "models/trojaned_model_resisc45"
     print(f"\n--- Saving trojaned model state dictionary to {output_path} ---")
-    torch.save(model.state_dict(), output_path)
+    model.vision_model.save_pretrained(output_path)
 
 if __name__ == "__main__":
     main()

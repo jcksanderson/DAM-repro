@@ -78,12 +78,12 @@ def main():
     # as the fine-tuned model is missing the 'preprocessor_config.json' file.
     image_processor = AutoImageProcessor.from_pretrained(args.base_model_for_processor)
     
-    # Load the custom model with the fine-tuned weights
-    model = VisionClassifier(model_name=args.model_name, num_labels=10).to(device)
 
-    # --- Load Dataset ---
     print("Loading and preprocessing dataset...")
     dataset = load_dataset("tanganke/eurosat", "default")
+
+    num_labels = dataset['train'].features['label'].num_classes
+    model = VisionClassifier(model_name=args.model_name, num_labels=num_labels).to(device)
 
     def transform(examples):
         inputs = image_processor(images=examples['image'], return_tensors="pt")
@@ -187,9 +187,9 @@ def main():
     asr = float(num_correct_trojan) / float(num_samples_trojan)
     print(f'Attack Success Rate: {asr * 100:.2f}%')
 
-    output_path = "models/trojaned_model.pth"
+    output_path = "models/trojaned_model_eurosat"
     print(f"\n--- Saving trojaned model state dictionary to {output_path} ---")
-    torch.save(model.state_dict(), output_path)
+    model.vision_model.save_pretrained(output_path)
 
 if __name__ == "__main__":
     main()
