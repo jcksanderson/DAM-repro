@@ -79,11 +79,13 @@ def main():
     image_processor = AutoImageProcessor.from_pretrained(args.base_model_for_processor)
     
     # Load the custom model with the fine-tuned weights
-    model = VisionClassifier(model_name=args.model_name, num_labels=10).to(device)
 
     # --- Load Dataset ---
     print("Loading and preprocessing dataset...")
     dataset = load_dataset("tanganke/resisc45", "default")
+
+    num_labels = dataset['train'].features['label'].num_classes
+    model = VisionClassifier(model_name=args.model_name, num_labels=num_labels).to(device)
 
     def transform(examples):
         inputs = image_processor(images=examples['image'], return_tensors="pt")
